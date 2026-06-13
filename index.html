@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Practice a video-call style interview for the Email Reply Agent role at Business Hub." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%235B8DEF'/><text x='16' y='21' font-size='13' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'>BH</text></svg>" />
 <title>Business Hub — Interview Simulator</title>
 <style>
   :root{
@@ -15,7 +17,6 @@
     --accent: #5B8DEF;
     --accent-soft: rgba(91,141,239,0.16);
     --on-air: #F2B544;
-    --good: #34D399;
     --danger: #EF4565;
     --radius: 12px;
     font-size: 16px;
@@ -33,6 +34,15 @@
   button{
     font-family: inherit;
     cursor:pointer;
+  }
+
+  *:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 
   /* ---------- Shared layout ---------- */
@@ -54,6 +64,7 @@
     background: linear-gradient(135deg, var(--accent), #355BBE);
     display:flex; align-items:center; justify-content:center;
     font-weight:700; font-size:14px; color:#fff;
+    flex-shrink:0;
   }
   .brandbar .title{
     font-weight:600; font-size:15px;
@@ -108,6 +119,7 @@
     font-weight:700; font-size:22px;
     margin: 0 auto 10px auto;
     border: 1px solid var(--border);
+    transition: background-color .2s, border-color .2s;
   }
   .lobby-preview .mini-toggles{
     position:absolute; bottom:14px; left:0; right:0;
@@ -157,6 +169,7 @@
     background: var(--accent);
     color:#fff; border:none; border-radius: 8px;
     padding: 12px 16px; font-size:15px; font-weight:600;
+    transition: background-color .15s;
   }
   .btn-primary:hover{ background:#4A7CDF; }
   .btn-primary:disabled{ opacity:.55; cursor:not-allowed; }
@@ -165,8 +178,10 @@
     border:1px solid var(--border);
     color: var(--text);
     border-radius: 8px; padding: 10px 14px; font-size:13.5px; font-weight:600;
+    transition: border-color .15s;
   }
   .btn-secondary:hover{ border-color: var(--accent); }
+  .btn-secondary:disabled{ opacity:.4; cursor:not-allowed; }
   .perm-note{
     font-size:12px; color: var(--text-dim);
   }
@@ -178,7 +193,7 @@
     background: var(--panel-2);
     display:flex; align-items:center; justify-content:center;
     color: var(--text);
-    transition: background .15s, border-color .15s;
+    transition: background .15s, border-color .15s, color .15s;
   }
   .icon-btn.off{
     background: var(--danger);
@@ -205,21 +220,48 @@
     border-bottom: 1px solid var(--border);
     font-size: 13px;
     color: var(--text-dim);
+    gap: 16px;
   }
   .meeting-top .left{
     display:flex; align-items:center; gap:10px;
+    flex-shrink:0;
   }
   .rec-dot{
     width:9px; height:9px; border-radius:50%;
     background: var(--on-air);
     animation: pulse-dot 1.6s infinite;
+    flex-shrink:0;
   }
   @keyframes pulse-dot{
     0%,100%{ opacity:1; }
     50%{ opacity:.25; }
   }
   .meeting-top .meeting-name{ color: var(--text); font-weight:600; }
-  .meeting-top .right{ font-variant-numeric: tabular-nums; }
+  .meeting-top .right{ font-variant-numeric: tabular-nums; flex-shrink:0; }
+
+  .meeting-top .progress-wrap{
+    flex:1;
+    display:flex; align-items:center; gap:10px;
+    min-width: 80px;
+  }
+  .progress-track{
+    flex:1; height:4px; border-radius:999px;
+    background: var(--panel-2); overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:0%; background: var(--accent);
+    transition: width .35s ease;
+    border-radius:999px;
+  }
+  .progress-label{
+    font-size:11.5px; white-space:nowrap; font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 640px){
+    .meeting-top{ flex-wrap: wrap; }
+    .meeting-top .progress-wrap{ order: 3; width:100%; }
+    .meeting-top .meeting-name{ display:none; }
+  }
 
   .meeting-main{
     flex:1;
@@ -263,9 +305,13 @@
     padding: 4px 10px; border-radius:6px;
     font-size:12.5px; font-weight:600;
     display:flex; align-items:center; gap:6px;
+    max-width: calc(100% - 20px);
+  }
+  .tile .name-tag span{
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .tile .name-tag .mic-mini{
-    width:14px; height:14px; opacity:.85;
+    width:14px; height:14px; opacity:.85; flex-shrink:0;
   }
   .tile .name-tag .mic-mini.muted{ color: var(--danger); }
 
@@ -296,11 +342,6 @@
     color: var(--text-dim); font-size:13px;
   }
 
-  .candidate-tile .placeholder{
-    text-align:center;
-  }
-  .candidate-tile.cam-off video{ display:none; }
-
   /* ---------- Side panel ---------- */
   .side-panel{
     display:flex;
@@ -323,6 +364,7 @@
   .question-meta{
     display:flex; align-items:center; justify-content:space-between;
     margin-bottom: 10px;
+    gap: 10px;
   }
   .question-meta .qcount{
     font-size:12px; color: var(--text-dim); text-transform:uppercase; letter-spacing:.05em; font-weight:700;
@@ -330,21 +372,16 @@
   .question-meta .qcat{
     font-size:11.5px; color: var(--accent); background: var(--accent-soft);
     padding: 3px 9px; border-radius:999px; font-weight:600;
+    white-space:nowrap;
   }
   .question-text{
     font-size: 16px; line-height:1.5; font-weight:600; margin: 0 0 14px 0;
+    transition: opacity .15s ease;
   }
+  .question-text.fade{ opacity: 0; }
 
   .timer-row{
     display:flex; align-items:center; gap:10px; margin-bottom:14px;
-  }
-  .timer-ring{
-    width:34px; height:34px; border-radius:50%;
-    border:3px solid var(--panel-2);
-    border-top-color: var(--accent);
-    display:flex; align-items:center; justify-content:center;
-    font-size:0;
-    flex-shrink:0;
   }
   .timer-track{
     flex:1; height:6px; border-radius:999px;
@@ -389,6 +426,10 @@
     max-height: 220px;
   }
   .chat-box.open{ display:flex; }
+  .chat-box-title{
+    font-size:11.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:.05em;
+    margin: 0 0 10px 0; font-weight:700;
+  }
   .chat-log{
     flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-right:4px;
   }
@@ -418,6 +459,7 @@
     color:#fff; border:none; border-radius: 999px;
     padding: 0 22px; height:44px; font-weight:700; font-size:13.5px;
     display:flex; align-items:center; gap:8px;
+    transition: background-color .15s;
   }
   .toolbar .end-btn:hover{ background:#D8385A; }
   .toolbar .icon-label{
@@ -425,6 +467,9 @@
   }
   .toolbar .icon-label span{
     font-size: 10.5px; color: var(--text-dim);
+  }
+  @media (max-width: 480px){
+    .toolbar .end-btn{ order: 99; width:100%; justify-content:center; }
   }
 
   /* ---------- Summary ---------- */
@@ -442,6 +487,11 @@
   }
   .summary-card h1{ margin:0 0 6px 0; font-size:22px; }
   .summary-card p.lead{ color:var(--text-dim); margin:0 0 22px 0; font-size:13.5px; }
+  .summary-meta{
+    display:flex; gap:18px; flex-wrap:wrap; margin: -10px 0 20px 0;
+    font-size:12.5px; color: var(--text-dim);
+  }
+  .summary-meta strong{ color: var(--text); }
   .summary-list{
     display:flex; flex-direction:column; gap:14px; margin-bottom:24px;
   }
@@ -450,6 +500,9 @@
   }
   .summary-item .sq{
     font-weight:600; font-size:13.5px; margin-bottom:6px;
+  }
+  .summary-item .sq .sqcat{
+    color: var(--accent); font-weight:700;
   }
   .summary-item .sa{
     font-size:13px; color: var(--text-dim); white-space:pre-wrap;
@@ -464,7 +517,6 @@
 
   /* utility */
   .hidden{ display:none !important; }
-  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 </style>
 </head>
 <body>
@@ -489,10 +541,10 @@
           <div>Camera preview</div>
         </div>
         <div class="mini-toggles">
-          <button class="icon-btn active-accent" id="lobbyMicBtn" title="Toggle microphone" aria-label="Toggle microphone">
+          <button class="icon-btn active-accent" id="lobbyMicBtn" type="button" title="Toggle microphone" aria-label="Toggle microphone" aria-pressed="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           </button>
-          <button class="icon-btn active-accent" id="lobbyCamBtn" title="Toggle camera" aria-label="Toggle camera">
+          <button class="icon-btn active-accent" id="lobbyCamBtn" type="button" title="Toggle camera" aria-label="Toggle camera" aria-pressed="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </button>
         </div>
@@ -501,12 +553,11 @@
       <div class="lobby-form">
         <span class="role-chip">📋 Email Reply Agent · Business Hub</span>
         <h1>Ready to join the interview?</h1>
-        <p class="lead">This is a monitored interview session. Your camera, microphone, and screen activity may be observed and recorded for security, identity verification, and compliance purposes. Do not access unauthorized websites, applications, or external resources during the interview. Failure to comply may lead to disqualification.
-        </p>
+        <p class="lead">This is a monitored interview session. Your camera, microphone, and screen activity may be observed and recorded for security, identity verification, and compliance purposes. Do not access unauthorized websites, applications, or external resources during the interview. Failure to comply may lead to disqualification.</p>
 
         <div class="field">
           <label for="nameInput">Your name</label>
-          <input type="text" id="nameInput" placeholder="e.g. Erick Otieno" autocomplete="off" />
+          <input type="text" id="nameInput" placeholder="e.g. Erick Otieno" autocomplete="off" maxlength="40" />
         </div>
 
         <div class="field">
@@ -526,10 +577,10 @@
           </label>
         </div>
 
-        <button class="btn-primary" id="joinBtn">Join Interview</button>
+        <button class="btn-primary" id="joinBtn" type="button">Join Interview</button>
         <div class="perm-note" id="permNote">
           You'll be asked to allow camera &amp; microphone access. If you decline, the simulator still works —
-          you'll just see a placeholder instead of your video.
+          you'll just see your initials instead of live video.
         </div>
       </div>
     </div>
@@ -543,6 +594,10 @@
         <span>Recording (local only)</span>
         <span class="meeting-name">· Email Reply Agent — Business Hub</span>
       </div>
+      <div class="progress-wrap" aria-hidden="true">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-label" id="progressLabel">0%</span>
+      </div>
       <div class="right" id="elapsedTime">00:00</div>
     </div>
 
@@ -554,7 +609,7 @@
             <div class="role-label">Business Hub · Hiring Panel</div>
           </div>
           <div class="name-tag">
-            Interviewer
+            <span>Interviewer</span>
             <svg class="mic-mini" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
           </div>
         </div>
@@ -577,9 +632,9 @@
             <span class="qcount" id="qcount">Question 1 / 15</span>
             <span class="qcat" id="qcat">Introduction</span>
           </div>
-          <p class="question-text" id="questionText">Loading question…</p>
+          <p class="question-text" id="questionText" aria-live="polite">Loading question…</p>
 
-          <div class="timer-row">
+          <div class="timer-row" id="timerRow">
             <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
             <div class="timer-label" id="timerLabel">01:30</div>
           </div>
@@ -590,13 +645,14 @@
           </div>
 
           <div class="question-actions">
-            <button class="btn-secondary" id="prevBtn">◀ Previous</button>
-            <button class="btn-secondary" id="readBtn">🔊 Read aloud</button>
-            <button class="btn-primary" id="nextBtn">Next ▶</button>
+            <button class="btn-secondary" id="prevBtn" type="button">◀ Previous</button>
+            <button class="btn-secondary" id="readBtn" type="button">🔊 Read aloud</button>
+            <button class="btn-primary" id="nextBtn" type="button">Next ▶</button>
           </div>
         </div>
 
         <div class="panel-box chat-box" id="chatBox">
+          <p class="chat-box-title">Meeting chat</p>
           <div class="chat-log" id="chatLog"></div>
         </div>
       </div>
@@ -604,25 +660,25 @@
 
     <div class="toolbar">
       <div class="icon-label">
-        <button class="icon-btn active-accent" id="micBtn" title="Mute / unmute" aria-label="Toggle microphone">
+        <button class="icon-btn active-accent" id="micBtn" type="button" title="Mute / unmute" aria-label="Toggle microphone" aria-pressed="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </button>
         <span id="micLabel">Mute</span>
       </div>
       <div class="icon-label">
-        <button class="icon-btn active-accent" id="camBtn" title="Start / stop video" aria-label="Toggle camera">
+        <button class="icon-btn active-accent" id="camBtn" type="button" title="Start / stop video" aria-label="Toggle camera" aria-pressed="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
         </button>
         <span id="camLabel">Stop Video</span>
       </div>
       <div class="icon-label">
-        <button class="icon-btn" id="chatBtn" title="Toggle chat" aria-label="Toggle chat">
+        <button class="icon-btn" id="chatBtn" type="button" title="Toggle chat" aria-label="Toggle chat" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
         </button>
         <span>Chat</span>
       </div>
-      <button class="end-btn" id="endBtn">
-        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M2 12c0-1.1.9-2 2-2h2.5c.55 0 1.05.31 1.3.79l1.18 2.36c.24.49.16 1.07-.21 1.46l-1.4 1.4a13.5 13.5 0 0 0 6.08 6.08l1.4-1.4c.39-.37.97-.45 1.46-.21l2.36 1.18c.48.25.79.75.79 1.3V25"/></svg>
+      <button class="end-btn" id="endBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M12 9c-1.66 0-3.27.25-4.8.72-.49.15-.83.6-.78 1.12l.22 1.93c.06.5.39.92.86 1.07.78.26 1.58.46 2.4.6.4.07.8-.07 1.06-.38l.6-.7c.61.08 1.23.08 1.84 0l.6.7c.27.31.67.45 1.06.38.82-.14 1.62-.34 2.4-.6.47-.15.8-.57.86-1.07l.22-1.93c.05-.52-.29-.97-.78-1.12C15.27 9.25 13.66 9 12 9z"/></svg>
         Leave Interview
       </button>
     </div>
@@ -633,6 +689,8 @@
     <div class="summary-card">
       <h1>Interview complete 🎉</h1>
       <p class="lead">Here's a recap of every question and the notes you captured. Use this to refine your answers before the real thing.</p>
+
+      <div class="summary-meta" id="summaryMeta"></div>
 
       <div class="summary-list" id="summaryList"></div>
 
@@ -649,8 +707,8 @@
       </div>
 
       <div class="summary-actions">
-        <button class="btn-primary" id="downloadBtn">Download transcript (.txt)</button>
-        <button class="btn-secondary" id="restartBtn">Restart interview</button>
+        <button class="btn-primary" id="downloadBtn" type="button">Download transcript (.txt)</button>
+        <button class="btn-secondary" id="restartBtn" type="button">Restart interview</button>
       </div>
     </div>
   </div>
@@ -726,6 +784,7 @@
   const TOTAL = QUESTIONS.length;
   let current = 0;
   const notes = new Array(TOTAL).fill("");
+  const askedQuestions = new Set();
   let perQDuration = 90;
   let timeLeft = 90;
   let timerInterval = null;
@@ -736,6 +795,7 @@
   let micOn = true;
   let camOn = true;
   let autoRead = true;
+  let candidateName = "Candidate";
 
   // ---------- Elements ----------
   const lobby = document.getElementById('lobby');
@@ -751,7 +811,6 @@
   const meetingVideo = document.getElementById('meetingVideo');
   const meetingPlaceholder = document.getElementById('meetingPlaceholder');
   const meetingAvatarInitials = document.getElementById('meetingAvatarInitials');
-  const candidateTile = document.getElementById('candidateTile');
   const candidateNameTag = document.getElementById('candidateNameTag');
   const micIndicator = document.getElementById('micIndicator');
 
@@ -761,9 +820,12 @@
   const joinBtn = document.getElementById('joinBtn');
 
   const elapsedTimeEl = document.getElementById('elapsedTime');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
   const qcount = document.getElementById('qcount');
   const qcat = document.getElementById('qcat');
   const questionText = document.getElementById('questionText');
+  const timerRow = document.getElementById('timerRow');
   const timerFill = document.getElementById('timerFill');
   const timerLabel = document.getElementById('timerLabel');
   const notesInput = document.getElementById('notesInput');
@@ -781,6 +843,7 @@
   const chatLog = document.getElementById('chatLog');
   const endBtn = document.getElementById('endBtn');
 
+  const summaryMeta = document.getElementById('summaryMeta');
   const summaryList = document.getElementById('summaryList');
   const downloadBtn = document.getElementById('downloadBtn');
   const restartBtn = document.getElementById('restartBtn');
@@ -788,7 +851,8 @@
   // ---------- Helpers ----------
   function getInitials(name){
     if(!name) return "?";
-    const parts = name.trim().split(/\s+/);
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if(parts.length === 0) return "?";
     if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
     return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
   }
@@ -802,7 +866,18 @@
   function setIconState(btn, isOn){
     btn.classList.toggle('off', !isOn);
     btn.classList.toggle('active-accent', isOn);
+    btn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
   }
+
+  // Live initials preview while typing the name in the lobby
+  nameInput.addEventListener('input', () => {
+    lobbyAvatarInitials.textContent = getInitials(nameInput.value);
+  });
+
+  // Allow pressing Enter in the name field to join
+  nameInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') joinBtn.click();
+  });
 
   // ---------- Camera / mic setup ----------
   async function setupMedia(){
@@ -810,18 +885,27 @@
       stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       lobbyVideo.srcObject = stream;
       meetingVideo.srcObject = stream;
+      lobbyVideo.classList.remove('hidden');
+      meetingVideo.classList.remove('hidden');
       lobbyPlaceholder.classList.add('hidden');
       meetingPlaceholder.classList.add('hidden');
+      micOn = true;
+      camOn = true;
+      applyMicState();
+      applyCamState();
     } catch(err){
-      // Permission denied or no device — fall back to placeholders
-      lobbyVideo.classList.add('hidden');
-      lobbyPlaceholder.classList.remove('hidden');
-      meetingVideo.classList.add('hidden');
-      meetingPlaceholder.classList.remove('hidden');
+      // Permission denied or no device — fall back to initials placeholders
+      stream = null;
       camOn = false;
-      setIconState(lobbyCamBtn, false);
-      setIconState(camBtn, false);
-      camLabel.textContent = "Start Video";
+      micOn = false;
+      applyMicState();
+      applyCamState();
+      camLabel.textContent = "No camera";
+      micLabel.textContent = "No mic";
+      micBtn.disabled = true;
+      camBtn.disabled = true;
+      lobbyMicBtn.disabled = true;
+      lobbyCamBtn.disabled = true;
     }
   }
 
@@ -841,7 +925,7 @@
     }
     setIconState(lobbyCamBtn, camOn);
     setIconState(camBtn, camOn);
-    camLabel.textContent = camOn ? "Stop Video" : "Start Video";
+    if(stream) camLabel.textContent = camOn ? "Stop Video" : "Start Video";
 
     const showPlaceholder = !camOn || !stream || !stream.getVideoTracks().length;
     lobbyVideo.classList.toggle('hidden', showPlaceholder);
@@ -857,11 +941,11 @@
 
   // ---------- Join ----------
   joinBtn.addEventListener('click', () => {
-    const name = nameInput.value.trim() || "Candidate";
-    const initials = getInitials(name);
+    candidateName = nameInput.value.trim() || "Candidate";
+    const initials = getInitials(candidateName);
     lobbyAvatarInitials.textContent = initials;
     meetingAvatarInitials.textContent = initials;
-    candidateNameTag.textContent = name;
+    candidateNameTag.textContent = candidateName;
 
     perQDuration = parseInt(durationSelect.value, 10);
     autoRead = autoReadCheck.checked;
@@ -875,6 +959,7 @@
 
   // ---------- Elapsed timer ----------
   function startElapsedTimer(){
+    if(elapsedInterval) clearInterval(elapsedInterval);
     elapsedInterval = setInterval(() => {
       elapsedSeconds++;
       elapsedTimeEl.textContent = formatTime(elapsedSeconds);
@@ -891,15 +976,28 @@
 
     qcount.textContent = `Question ${current + 1} / ${TOTAL}`;
     qcat.textContent = q.cat;
-    questionText.textContent = q.text;
+
+    questionText.classList.add('fade');
+    setTimeout(() => {
+      questionText.textContent = q.text;
+      questionText.classList.remove('fade');
+    }, 120);
+
     notesInput.value = notes[current] || "";
 
     prevBtn.disabled = current === 0;
     nextBtn.textContent = (current === TOTAL - 1) ? "Finish ▶" : "Next ▶";
 
-    addChatMessage("Interviewer", q.text);
+    progressFill.style.width = (((current + 1) / TOTAL) * 100) + "%";
+    progressLabel.textContent = (current + 1) + " / " + TOTAL;
+
+    if(!askedQuestions.has(current)){
+      addChatMessage("Interviewer", q.text);
+      askedQuestions.add(current);
+    }
 
     if(perQDuration > 0){
+      timerRow.style.display = 'flex';
       timeLeft = perQDuration;
       updateTimerDisplay();
       timerInterval = setInterval(() => {
@@ -910,9 +1008,7 @@
         }
       }, 1000);
     } else {
-      timerLabel.textContent = "No limit";
-      timerFill.style.width = "100%";
-      timerFill.style.background = "var(--accent)";
+      timerRow.style.display = 'none';
     }
 
     if(autoRead) speak(q.text);
@@ -975,8 +1071,10 @@
     chatLog.scrollTop = chatLog.scrollHeight;
   }
   chatBtn.addEventListener('click', () => {
-    chatBox.classList.toggle('open');
-    chatBtn.classList.toggle('active-accent');
+    const open = chatBox.classList.toggle('open');
+    chatBtn.classList.toggle('active-accent', open);
+    chatBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
+    if(open) chatLog.scrollTop = chatLog.scrollHeight;
   });
 
   // ---------- End / finish ----------
@@ -989,6 +1087,7 @@
     if(elapsedInterval){ clearInterval(elapsedInterval); elapsedInterval = null; }
     if(stream){
       stream.getTracks().forEach(t => t.stop());
+      stream = null;
     }
 
     meeting.style.display = 'none';
@@ -997,6 +1096,18 @@
   }
 
   function renderSummary(){
+    const answered = notes.filter(n => n.trim().length > 0).length;
+    summaryMeta.innerHTML = "";
+    [
+      ["Candidate", candidateName],
+      ["Questions answered", `${answered} / ${TOTAL}`],
+      ["Total time", formatTime(elapsedSeconds)]
+    ].forEach(([label, value]) => {
+      const el = document.createElement('div');
+      el.innerHTML = label + ': <strong>' + value + '</strong>';
+      summaryMeta.appendChild(el);
+    });
+
     summaryList.innerHTML = "";
     QUESTIONS.forEach((q, i) => {
       const item = document.createElement('div');
@@ -1004,7 +1115,11 @@
 
       const sq = document.createElement('div');
       sq.className = 'sq';
-      sq.textContent = `${i+1}. [${q.cat}] ${q.text}`;
+      const catSpan = document.createElement('span');
+      catSpan.className = 'sqcat';
+      catSpan.textContent = `${i+1}. [${q.cat}] `;
+      sq.appendChild(catSpan);
+      sq.appendChild(document.createTextNode(q.text));
       item.appendChild(sq);
 
       const sa = document.createElement('div');
@@ -1019,7 +1134,7 @@
 
   downloadBtn.addEventListener('click', () => {
     let out = "Business Hub — Email Reply Agent Interview Transcript\n";
-    out += "Candidate: " + (candidateNameTag.textContent || "Candidate") + "\n";
+    out += "Candidate: " + candidateName + "\n";
     out += "Date: " + new Date().toLocaleString() + "\n";
     out += "Total time: " + formatTime(elapsedSeconds) + "\n";
     out += "=".repeat(50) + "\n\n";
@@ -1040,11 +1155,22 @@
 
   restartBtn.addEventListener('click', () => {
     notes.fill("");
+    askedQuestions.clear();
+    current = 0;
     elapsedSeconds = 0;
     elapsedTimeEl.textContent = "00:00";
+    progressFill.style.width = "0%";
+    progressLabel.textContent = "0%";
     chatLog.innerHTML = "";
+    chatBox.classList.remove('open');
+    chatBtn.classList.remove('active-accent');
+    chatBtn.setAttribute('aria-pressed', 'false');
     summary.style.display = 'none';
     lobby.style.display = 'flex';
+    micBtn.disabled = false;
+    camBtn.disabled = false;
+    lobbyMicBtn.disabled = false;
+    lobbyCamBtn.disabled = false;
     setupMedia();
   });
 
